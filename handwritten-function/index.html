@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="./mypromise.js"></script>
+    <script>
+      var p = new myPromise((res, rej) => {
+        rej(1)
+      })
+      console.log(p)
+    </script>
+    <code> new Promise((res, rej) => { rej(123) }) </code>
+  </body>
+</html>
