@@ -1,24 +1,16 @@
-function myapply(bindObj, argsArr) {
-  const only = Symbol('only')
-  bindObj[only] = this
-  const res = bindObj[only](...argsArr)
-  delete bindObj[only]
+function fn(...args) {
+  console.log(this.haha, ...args);
+}
+
+console.log(fn.apply({ haha: 'haha' }, [2, 3, 4]))
+
+Object.prototype.myapply = function myapply(obj, args) {
+  const sym = Symbol(fn)
+  obj[sym] = this
+  const res = obj[sym](...args)
+  delete obj[sym]
   return res
 }
 
-function myapply2(bindObj, argsArr) {
-  const only = Math.random()
-  bindObj[only] = this
-  let res
-  if (!argsArr || argsArr.length === 0 ) {
-    res = bindObj[only]()
-  } else {
-    let evalStr = ''
-    for (var i = 0; i < argsArr.length; ++i) {
-      evalStr += argsArr[i] + ','
-    }
-    res = eval('bindObj[only](' + evalStr + ')')
-  }
-  delete bindObj[only]
-  return res
-}
+console.log(fn.myapply({ haha: 'haha' }, [2, 3, 4]))
+
