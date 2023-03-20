@@ -3,7 +3,7 @@ var PENDING = 'pending';
 var FULFILLED = 'fulfilled';
 var REJECTED = 'rejected';
 
-function MyPromise(fn) {
+function DonePromise(fn) {
   this.status = PENDING;    // 初始状态为pending
   this.value = null;        // 初始化value
   this.reason = null;       // 初始化reason
@@ -54,7 +54,7 @@ function resolvePromise(promise, x, resolve, reject) {
     return reject(new TypeError('The promise and the return value are the same'));
   }
 
-  if (x instanceof MyPromise) {
+  if (x instanceof DonePromise) {
     // 如果 x 为 Promise ，则使 promise 接受 x 的状态
     // 也就是继续执行x，如果执行的时候拿到一个y，还要继续解析y
     // 这个if跟下面判断then然后拿到执行其实重复了，可有可无
@@ -119,7 +119,7 @@ function resolvePromise(promise, x, resolve, reject) {
   }
 }
 
-MyPromise.prototype.then = function (onFulfilled, onRejected) {
+DonePromise.prototype.then = function (onFulfilled, onRejected) {
   // 如果onFulfilled不是函数，给一个默认函数，返回value
   // 后面返回新promise的时候也做了onFulfilled的参数检查，这里可以删除，暂时保留是为了跟规范一一对应，看得更直观
   var realOnFulfilled = onFulfilled;
@@ -141,7 +141,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
   var that = this;   // 保存一下this
 
   if (this.status === FULFILLED) {
-    var promise2 = new MyPromise(function (resolve, reject) {
+    var promise2 = new DonePromise(function (resolve, reject) {
       setTimeout(function () {
         try {
           if (typeof onFulfilled !== 'function') {
@@ -160,7 +160,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
   }
 
   if (this.status === REJECTED) {
-    var promise2 = new MyPromise(function (resolve, reject) {
+    var promise2 = new DonePromise(function (resolve, reject) {
       setTimeout(function () {
         try {
           if (typeof onRejected !== 'function') {
@@ -180,7 +180,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
 
   // 如果还是PENDING状态，将回调保存下来
   if (this.status === PENDING) {
-    var promise2 = new MyPromise(function (resolve, reject) {
+    var promise2 = new DonePromise(function (resolve, reject) {
       that.onFulfilledCallbacks.push(function () {
         setTimeout(function () {
           try {
@@ -215,24 +215,24 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
   }
 }
 
-MyPromise.resolve = function (parameter) {
-  if (parameter instanceof MyPromise) {
+DonePromise.resolve = function (parameter) {
+  if (parameter instanceof DonePromise) {
     return parameter;
   }
 
-  return new MyPromise(function (resolve) {
+  return new DonePromise(function (resolve) {
     resolve(parameter);
   });
 }
 
-MyPromise.reject = function (reason) {
-  return new MyPromise(function (resolve, reject) {
+DonePromise.reject = function (reason) {
+  return new DonePromise(function (resolve, reject) {
     reject(reason);
   });
 }
 
-MyPromise.all = function (promiseList) {
-  var resPromise = new MyPromise(function (resolve, reject) {
+DonePromise.all = function (promiseList) {
+  var resPromise = new DonePromise(function (resolve, reject) {
     var count = 0;
     var result = [];
     var length = promiseList.length;
@@ -242,7 +242,7 @@ MyPromise.all = function (promiseList) {
     }
 
     promiseList.forEach(function (promise, index) {
-      MyPromise.resolve(promise).then(function (value) {
+      DonePromise.resolve(promise).then(function (value) {
         count++;
         result[index] = value;
         if (count === length) {
@@ -257,15 +257,15 @@ MyPromise.all = function (promiseList) {
   return resPromise;
 }
 
-MyPromise.race = function (promiseList) {
-  var resPromise = new MyPromise(function (resolve, reject) {
+DonePromise.race = function (promiseList) {
+  var resPromise = new DonePromise(function (resolve, reject) {
     var length = promiseList.length;
 
     if (length === 0) {
       return resolve();
     } else {
       for (var i = 0; i < length; i++) {
-        MyPromise.resolve(promiseList[i]).then(function (value) {
+        DonePromise.resolve(promiseList[i]).then(function (value) {
           return resolve(value);
         }, function (reason) {
           return reject(reason);
@@ -277,24 +277,24 @@ MyPromise.race = function (promiseList) {
   return resPromise;
 }
 
-MyPromise.prototype.catch = function (onRejected) {
+DonePromise.prototype.catch = function (onRejected) {
   this.then(null, onRejected);
 }
 
-MyPromise.prototype.finally = function (fn) {
+DonePromise.prototype.finally = function (fn) {
   return this.then(function (value) {
-    return MyPromise.resolve(fn()).then(function () {
+    return DonePromise.resolve(fn()).then(function () {
       return value;
     });
   }, function (error) {
-    return MyPromise.resolve(fn()).then(function () {
+    return DonePromise.resolve(fn()).then(function () {
       throw error
     });
   });
 }
 
-MyPromise.allSettled = function (promiseList) {
-  return new MyPromise(function (resolve) {
+DonePromise.allSettled = function (promiseList) {
+  return new DonePromise(function (resolve) {
     var length = promiseList.length;
     var result = [];
     var count = 0;
@@ -305,7 +305,7 @@ MyPromise.allSettled = function (promiseList) {
       for (var i = 0; i < length; i++) {
 
         (function (i) {
-          var currentPromise = MyPromise.resolve(promiseList[i]);
+          var currentPromise = DonePromise.resolve(promiseList[i]);
 
           currentPromise.then(function (value) {
             count++;
@@ -332,4 +332,4 @@ MyPromise.allSettled = function (promiseList) {
   });
 }
 
-module.exports = MyPromise;
+module.exports = DonePromise;

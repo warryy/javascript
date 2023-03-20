@@ -1,4 +1,4 @@
-const myPromise = require("./standard-promise.js");
+const myPromise = require("./done-promise.js");
 // const myPromise = require("./my-promise.js");
 // const myPromise = Promise
 try {
