@@ -6,6 +6,10 @@ var isFunc = function (fn) {
   return typeof fn === "function";
 };
 
+/**
+ * 构造 MyPromise 函数
+ * @param {初始化函数} fn
+ */
 function MyPromise(fn) {
   this.state = PENDING;
   this.value = null;
@@ -52,7 +56,7 @@ function MyPromise(fn) {
  * @param {*} x js 基本类型 | MyPromise | thenable 对象或函数
  * @param {*} resolve resolve 函数
  * @param {*} reject reject 函数
- * @returns
+ * @returns void
  */
 function resolvePromise(promise, x, resolve, reject) {
   // 防止死循环
@@ -108,6 +112,12 @@ function resolvePromise(promise, x, resolve, reject) {
   }
 }
 
+/**
+ * then 原型方法实现
+ * @param {promise 状态 fulfilled 时的回调函数} onFulfilled
+ * @param {promise 状态 rejected 时的回调函数} onRejected
+ * @returns MyPromise 对象
+ */
 MyPromise.prototype.then = function (onFulfilled, onRejected) {
   var that = this;
 
@@ -206,4 +216,33 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
   }
 };
 
-// module.exports = MyPromise;
+/**
+ * resolve
+ */
+MyPromise.promise.resolve = function (value) {
+  if (value instanceof MyPromise) {
+    return value;
+  }
+
+  return new MyPromise(function (resolve) {
+    resolve(value);
+  });
+};
+
+/**
+ * reject
+ */
+MyPromise.prototype.reject = function (error) {
+  return new MyPromise(function (res, rej) {
+    rej(error);
+  });
+};
+
+/**
+ * catch
+ */
+MyPromise.promise.catch = function(onRejected) {
+  this.then(null, onRejected)
+}
+
+module.exports = MyPromise;

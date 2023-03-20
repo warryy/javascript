@@ -4,7 +4,8 @@
   "description": "",
   "main": "adapter.js",
   "scripts": {
-    "test": "promises-aplus-tests adapter.js"
+    "test": "promises-aplus-tests done-promise-adapter.js",
+    "test:my": "promises-aplus-tests my-promise-adapter.js"
   },
   "author": "",
   "license": "ISC",
