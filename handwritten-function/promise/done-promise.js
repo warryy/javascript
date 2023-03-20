@@ -4,7 +4,7 @@ var FULFILLED = 'fulfilled';
 var REJECTED = 'rejected';
 
 function MyPromise(fn) {
-  this.status = PENDING;    // 初始状态为pending
+  this.state = PENDING;    // 初始状态为pending
   this.value = null;        // 初始化value
   this.reason = null;       // 初始化reason
 
@@ -16,8 +16,8 @@ function MyPromise(fn) {
   var that = this;
   // resolve方法参数是value
   function resolve(value) {
-    if (that.status === PENDING) {
-      that.status = FULFILLED;
+    if (that.state === PENDING) {
+      that.state = FULFILLED;
       that.value = value;
 
       // resolve里面将所有成功的回调拿出来执行
@@ -29,8 +29,8 @@ function MyPromise(fn) {
 
   // reject方法参数是reason
   function reject(reason) {
-    if (that.status === PENDING) {
-      that.status = REJECTED;
+    if (that.state === PENDING) {
+      that.state = REJECTED;
       that.reason = reason;
 
       // resolve里面将所有失败的回调拿出来执行
@@ -140,7 +140,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
 
   var that = this;   // 保存一下this
 
-  if (this.status === FULFILLED) {
+  if (this.state === FULFILLED) {
     var promise2 = new MyPromise(function (resolve, reject) {
       setTimeout(function () {
         try {
@@ -159,7 +159,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
     return promise2;
   }
 
-  if (this.status === REJECTED) {
+  if (this.state === REJECTED) {
     var promise2 = new MyPromise(function (resolve, reject) {
       setTimeout(function () {
         try {
@@ -179,7 +179,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
   }
 
   // 如果还是PENDING状态，将回调保存下来
-  if (this.status === PENDING) {
+  if (this.state === PENDING) {
     var promise2 = new MyPromise(function (resolve, reject) {
       that.onFulfilledCallbacks.push(function () {
         setTimeout(function () {
@@ -310,7 +310,7 @@ MyPromise.reject = function (reason) {
 //           currentPromise.then(function (value) {
 //             count++;
 //             result[i] = {
-//               status: 'fulfilled',
+//               state: 'fulfilled',
 //               value: value
 //             }
 //             if (count === length) {
@@ -319,7 +319,7 @@ MyPromise.reject = function (reason) {
 //           }, function (reason) {
 //             count++;
 //             result[i] = {
-//               status: 'rejected',
+//               state: 'rejected',
 //               reason: reason
 //             }
 //             if (count === length) {
