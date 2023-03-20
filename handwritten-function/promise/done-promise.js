@@ -1,12 +1,12 @@
 // 先定义三个常量表示状态
-var PENDING = 'pending';
-var FULFILLED = 'fulfilled';
-var REJECTED = 'rejected';
+var PENDING = "pending";
+var FULFILLED = "fulfilled";
+var REJECTED = "rejected";
 
 function MyPromise(fn) {
-  this.state = PENDING;    // 初始状态为pending
-  this.value = null;        // 初始化value
-  this.reason = null;       // 初始化reason
+  this.state = PENDING; // 初始状态为pending
+  this.value = null; // 初始化value
+  this.reason = null; // 初始化reason
 
   // 构造函数里面添加两个数组存储成功和失败的回调
   this.onFulfilledCallbacks = [];
@@ -21,7 +21,7 @@ function MyPromise(fn) {
       that.value = value;
 
       // resolve里面将所有成功的回调拿出来执行
-      that.onFulfilledCallbacks.forEach(callback => {
+      that.onFulfilledCallbacks.forEach((callback) => {
         callback(that.value);
       });
     }
@@ -34,7 +34,7 @@ function MyPromise(fn) {
       that.reason = reason;
 
       // resolve里面将所有失败的回调拿出来执行
-      that.onRejectedCallbacks.forEach(callback => {
+      that.onRejectedCallbacks.forEach((callback) => {
         callback(that.reason);
       });
     }
@@ -51,7 +51,9 @@ function resolvePromise(promise, x, resolve, reject) {
   // 如果 promise 和 x 指向同一对象，以 TypeError 为据因拒绝执行 promise
   // 这是为了防止死循环
   if (promise === x) {
-    return reject(new TypeError('The promise and the return value are the same'));
+    return reject(
+      new TypeError("The promise and the return value are the same")
+    );
   }
 
   if (x instanceof MyPromise) {
@@ -63,14 +65,11 @@ function resolvePromise(promise, x, resolve, reject) {
     }, reject);
   }
   // 如果 x 为对象或者函数
-  else if (typeof x === 'object' || typeof x === 'function') {
+  else if ((typeof x === "object" && x !== null) || typeof x === "function") {
     // 这个坑是跑测试的时候发现的，如果x是null，应该直接resolve
-    if (x === null) {
-      return resolve(x);
-    }
 
     try {
-      // 把 x.then 赋值给 then 
+      // 把 x.then 赋值给 then
       var then = x.then;
     } catch (error) {
       // 如果取 x.then 的值时抛出错误 e ，则以 e 为据因拒绝 promise
@@ -78,7 +77,7 @@ function resolvePromise(promise, x, resolve, reject) {
     }
 
     // 如果 then 是函数
-    if (typeof then === 'function') {
+    if (typeof then === "function") {
       var called = false;
       // 将 x 作为函数的作用域 this 调用之
       // 传递两个回调函数作为参数，第一个参数叫做 resolvePromise ，第二个参数叫做 rejectPromise
@@ -100,7 +99,8 @@ function resolvePromise(promise, x, resolve, reject) {
             if (called) return;
             called = true;
             reject(r);
-          });
+          }
+        );
       } catch (error) {
         // 如果调用 then 方法抛出了异常 e：
         // 如果 resolvePromise 或 rejectPromise 已经被调用，则忽略之
@@ -123,28 +123,28 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
   // 如果onFulfilled不是函数，给一个默认函数，返回value
   // 后面返回新promise的时候也做了onFulfilled的参数检查，这里可以删除，暂时保留是为了跟规范一一对应，看得更直观
   var realOnFulfilled = onFulfilled;
-  if (typeof realOnFulfilled !== 'function') {
+  if (typeof realOnFulfilled !== "function") {
     realOnFulfilled = function (value) {
       return value;
-    }
+    };
   }
 
   // 如果onRejected不是函数，给一个默认函数，返回reason的Error
   // 后面返回新promise的时候也做了onRejected的参数检查，这里可以删除，暂时保留是为了跟规范一一对应，看得更直观
   var realOnRejected = onRejected;
-  if (typeof realOnRejected !== 'function') {
+  if (typeof realOnRejected !== "function") {
     realOnRejected = function (reason) {
       throw reason;
-    }
+    };
   }
 
-  var that = this;   // 保存一下this
+  var that = this; // 保存一下this
 
   if (this.state === FULFILLED) {
     var promise2 = new MyPromise(function (resolve, reject) {
       setTimeout(function () {
         try {
-          if (typeof onFulfilled !== 'function') {
+          if (typeof onFulfilled !== "function") {
             resolve(that.value);
           } else {
             var x = realOnFulfilled(that.value);
@@ -163,7 +163,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
     var promise2 = new MyPromise(function (resolve, reject) {
       setTimeout(function () {
         try {
-          if (typeof onRejected !== 'function') {
+          if (typeof onRejected !== "function") {
             reject(that.reason);
           } else {
             var x = realOnRejected(that.reason);
@@ -184,7 +184,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
       that.onFulfilledCallbacks.push(function () {
         setTimeout(function () {
           try {
-            if (typeof onFulfilled !== 'function') {
+            if (typeof onFulfilled !== "function") {
               resolve(that.value);
             } else {
               var x = realOnFulfilled(that.value);
@@ -198,7 +198,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
       that.onRejectedCallbacks.push(function () {
         setTimeout(function () {
           try {
-            if (typeof onRejected !== 'function') {
+            if (typeof onRejected !== "function") {
               reject(that.reason);
             } else {
               var x = realOnRejected(that.reason);
@@ -207,13 +207,13 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
           } catch (error) {
             reject(error);
           }
-        }, 0)
+        }, 0);
       });
     });
 
     return promise2;
   }
-}
+};
 
 MyPromise.resolve = function (parameter) {
   if (parameter instanceof MyPromise) {
@@ -223,13 +223,13 @@ MyPromise.resolve = function (parameter) {
   return new MyPromise(function (resolve) {
     resolve(parameter);
   });
-}
+};
 
 MyPromise.reject = function (reason) {
   return new MyPromise(function (resolve, reject) {
     reject(reason);
   });
-}
+};
 
 // MyPromise.all = function (promiseList) {
 //   var resPromise = new MyPromise(function (resolve, reject) {
