@@ -24,22 +24,22 @@ function MyPromise(fn) {
     if (that.state === PENDING) {
       that.state = FULFILLED;
       that.value = val;
-    }
 
-    that.onFulfilledCallbacks.forEach((cb) => {
-      cb(that.value);
-    });
+      that.onFulfilledCallbacks.forEach((cb) => {
+        cb(that.value);
+      });
+    }
   }
 
   function reject(reason) {
     if (that.state === PENDING) {
       that.state = REJECTED;
       that.reason = reason;
-    }
 
-    that.onFulfilledCallbacks.forEach((cb) => {
-      cb(that.reason);
-    });
+      that.onRejectedCallbacks.forEach((cb) => {
+        cb(that.reason);
+      });
+    }
   }
 
   try {
@@ -136,7 +136,14 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
             } else {
               resolve(that.value);
             }
-          } catch (error) {}
+          } catch (error) {
+            // 这里是我自己加的判断, 因为 reject 可以不传或传错
+            if (isFunc(reject)) {
+              reject(error);
+            } else {
+              throw error;
+            }
+          }
         }, 0);
       });
 
@@ -157,7 +164,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
             if (isFunc(reject)) {
               reject(error);
             } else {
-              throw new Error(error);
+              throw error;
             }
           }
         }, 0);
@@ -219,7 +226,7 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
 /**
  * resolve
  */
-MyPromise.promise.resolve = function (value) {
+MyPromise.resolve = function (value) {
   if (value instanceof MyPromise) {
     return value;
   }
@@ -232,17 +239,133 @@ MyPromise.promise.resolve = function (value) {
 /**
  * reject
  */
-MyPromise.prototype.reject = function (error) {
+MyPromise.reject = function (error) {
   return new MyPromise(function (res, rej) {
     rej(error);
   });
 };
 
-/**
- * catch
- */
-MyPromise.promise.catch = function(onRejected) {
-  this.then(null, onRejected)
-}
+// /**
+//  * catch
+//  */
+// MyPromise.prototype.catch = function (onRejected) {
+//   this.then(null, onRejected);
+// };
+
+// /**
+//  * all
+//  * @param {promise 数组} promiseList
+//  * @return MyPromise 对象
+//  */
+// MyPromise.all = function (promiseList) {
+//   return new MyPromise((resolve, reject) => {
+//     var count = 0;
+//     var listLength = promiseList.length;
+//     var resList = new Array(listLength);
+
+//     if (listLength === 0) {
+//       return resolve(resList);
+//     }
+
+//     promiseList.forEach((item, idx) => {
+//       item.then(
+//         (res) => {
+//           count++;
+//           resList[idx] = res;
+
+//           if (count === listLength) {
+//             resolve(resList);
+//           }
+//         },
+//         (reason) => {
+//           reject(reason);
+//         }
+//       );
+//     });
+//   });
+// };
+
+// /**
+//  * race
+//  * @param {promise 数组} promiseList
+//  * @return MyPromise 对象
+//  */
+// MyPromise.race = function (promiseList) {
+//   return new MyPromise((resolve, reject) => {
+//     if (listLength === 0) {
+//       return;
+//     }
+
+//     promiseList.forEach((item) => {
+//       item.then(
+//         (res) => {
+//           resolve(item);
+//         },
+//         (reason) => {
+//           reject(reason);
+//         }
+//       );
+//     });
+//   });
+// };
+
+// /**
+//  * finally
+//  * @param {promise 状态改变回调函数} cb
+//  * @returns MyPromise
+//  */
+// MyPromise.prototype.finally = function (cb) {
+//   return this.then(
+//     function (res) {
+//       return MyPromise.resolve(cb()).then(function () {
+//         return res
+//       })
+//     },
+//     function (reason) {
+//       return  MyPromise.resolve(cb()).then(function () {
+//         throw reason
+//       })
+//     }
+//   );
+// };
+
+// /**
+//  * allSettled
+//  * @param {promiseList} promiseList
+//  * @returns <Array>{ status: 状态, value: 值, reason: 错误原因 }
+//  */
+// MyPromise.allSettled = function (promiseList) {
+//   var count = 0
+//   var length = promiseList.length
+//   const res = new Array(length)
+
+//   if (length === 0) {
+//     return resolve(res)
+//   }
+
+//   return new MyPromise((resolve, reject) => {
+//     promiseList.forEach((promiseRes, idx) => {
+//       promiseRes.then(function (promise) {
+//         count ++
+//         res[idx] = promise
+//         if (count === length) {
+//           resolve({
+//             status: FULFILLED,
+//             value: res,
+//           })
+//         }
+//       }, function (reason) {
+//         count ++
+//         res[idx] = MyPromise.reject(reason)
+//         if (count === length) {
+//           resolve({
+//             status: REJECTED,
+//             reason: reason,
+//           })
+//         }
+//       })
+//     })
+//   })
+// }
 
 module.exports = MyPromise;

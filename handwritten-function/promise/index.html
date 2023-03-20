@@ -9,19 +9,11 @@
   <body>
     <script src="./my-promise.js"></script>
     <script>
-      new MyPromise((res, rej) => res('fulfill')).then(
-        (res) => {
-          console.log("onFulfilled: ", res);
-        },
-        (err) => console.log('onRejected: ', err)
-      );
-
-      new MyPromise((res, rej) => rej('err')).then(
-        (res) => {
-          console.log("onFulfilled: ", res);
-        },
-        (err) => console.log('onRejected: ', err)
-      );
+      MyPromise.reject({a: 1})
+        .then(function () {}, undefined)
+        .then(nonFunction, function () {
+          console.log('=====')
+        });
     </script>
   </body>
 </html>

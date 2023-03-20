@@ -30,4 +30,10 @@ console.log(2);
 ### `resolve` & `reject` & `catch`
 很简单, 直接看代码就好
 
-### `all`
+### `all` & `race`
+- `then` 中统计已经 `fulfilled` 的 `promise` 个数
+- 注意 `all` 参数传入空数组的边界情况
+- `race` 是 `all` 的简化版
+
+### `finally`
+- 要返回一个 `Promise` 对象, 因为 `finally` 也可以链式调用
