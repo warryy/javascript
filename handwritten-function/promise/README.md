@@ -21,16 +21,19 @@ console.log(2);
 //  打印顺序: 2, 1
 ```
 
-- 需要抽象出一个工具函数 `resolvePromise`, 用于解决 `onFulfilled` 函数返回值的三大类情况:
+- 需要抽象出一个工具函数 `resolvePromise(promise, x, resolve, reject)`, 用于解决 `onFulfilled` 函数返回值的三大类情况:
 1. 和原 `promise` 相同
 2. 是一个 `thenable` 的对象或者函数
 3. 是一个新的 `promise` 对象
+4. 如果 `x` 的值是一个具有 `then` 属性的函数或者对象且 `then` 是函数, 那就要用 `x` 去调用 `then`, 调用方式和调用 `Promise.prototype.then` 的方式一样
 
 ## 进阶补充(完善方法)
 ### `resolve` & `reject` & `catch`
+- `resolve` & `reject` 为函数自带方法
 很简单, 直接看代码就好
 
 ### `all` & `race`
+- 函数自带方法
 - `then` 中统计已经 `fulfilled` 的 `promise` 个数
 - 注意 `all` 参数传入空数组的边界情况
 - `race` 是 `all` 的简化版
