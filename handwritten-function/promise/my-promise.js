@@ -26,7 +26,7 @@ function MyPromise(fn) {
       that.value = val;
 
       that.onFulfilledCallbacks.forEach((cb) => {
-        cb(that.value);
+        cb();
       });
     }
   }
@@ -37,7 +37,7 @@ function MyPromise(fn) {
       that.reason = reason;
 
       that.onRejectedCallbacks.forEach((cb) => {
-        cb(that.reason);
+        cb();
       });
     }
   }
@@ -50,7 +50,11 @@ function MyPromise(fn) {
 }
 
 /**
- * 将 x 的值赋给 promise 的 value
+ * 将 x 赋值给 promise 的 value, 错误要 reject 掉, 其余要 resolve 掉
+ * 1. x 和 promise 相等
+ * 2. x 是 promise
+ * 3. x 是 thenable 对象或者函数
+ * 4. x 是基本类型
  * @param {*} promise
  * @param {*} x js 基本类型 | MyPromise | thenable 对象或函数
  * @param {*} resolve resolve 函数
@@ -85,22 +89,19 @@ function resolvePromise(promise, x, resolve, reject) {
     }
 
     if (typeof then === "function") {
+      // 防止 x.then 手动调用两次时函数也执行两次
       var called = false;
       try {
         // 这里必须要用 then.call(x, ...) 来写, x.then(...) x.then.call(x, ...) 测试用例2.3.3.1第三条就跪了, 感觉是测试用例的问题?
         then.call(
           x,
-          function (r) {
-            if (called) {
-              return;
-            }
+          function (y) {
+            if (called) return;
             called = true;
-            resolvePromise(promise, r, resolve, reject);
+            resolvePromise(promise, y, resolve, reject);
           },
           function (e) {
-            if (called) {
-              return;
-            }
+            if (called) return;
             called = true;
             reject(e);
           }
@@ -127,63 +128,7 @@ function resolvePromise(promise, x, resolve, reject) {
  * @returns MyPromise 对象
  */
 MyPromise.prototype.then = function (onFulfilled, onRejected) {
-  // 如果onFulfilled不是函数，给一个默认函数，返回value
-  // 后面返回新promise的时候也做了onFulfilled的参数检查，这里可以删除，暂时保留是为了跟规范一一对应，看得更直观
-  var realOnFulfilled = onFulfilled;
-  if (typeof realOnFulfilled !== "function") {
-    realOnFulfilled = function (value) {
-      return value;
-    };
-  }
-
-  // 如果onRejected不是函数，给一个默认函数，返回reason的Error
-  // 后面返回新promise的时候也做了onRejected的参数检查，这里可以删除，暂时保留是为了跟规范一一对应，看得更直观
-  var realOnRejected = onRejected;
-  if (typeof realOnRejected !== "function") {
-    realOnRejected = function (reason) {
-      throw reason;
-    };
-  }
-
   var that = this;
-
-  // 如果已经是 fulfilled 状态的函数, 只需要直接执行 onFulfilled 函数
-  if (that.state === FULFILLED) {
-    var promise2 = new MyPromise(function (resolve, reject) {
-      setTimeout(() => {
-        try {
-          if (isFunc(onFulfilled)) {
-            const x = onFulfilled(that.value);
-            resolvePromise(promise2, x, resolve, reject);
-          } else {
-            resolve(that.value);
-          }
-        } catch (error) {
-          reject(error);
-        }
-      }, 0);
-    });
-    return promise2;
-  }
-
-  // 如果已经是 rejected 状态, 则只需要直接执行 onRejected 函数
-  if (that.state === REJECTED) {
-    var promise2 = new MyPromise(function (resolve, reject) {
-      setTimeout(function () {
-        try {
-          if (isFunc(onRejected)) {
-            var x = onRejected(that.reason);
-            resolvePromise(promise2, x, resolve, reject);
-          } else {
-            reject(that.reason);
-          }
-        } catch (error) {
-          reject(error);
-        }
-      }, 0);
-    });
-    return promise2;
-  }
 
   // 如果是 pending 状态, 需要将函数放到回调函数栈中, 待函数 resolve 时调用
   if (that.state === PENDING) {
@@ -223,6 +168,46 @@ MyPromise.prototype.then = function (onFulfilled, onRejected) {
       });
     });
 
+    return promise2;
+  }
+
+  // 如果已经是 fulfilled 状态的函数, 只需要直接执行 onFulfilled 函数
+  if (that.state === FULFILLED) {
+    var promise2 = new MyPromise(function (resolve, reject) {
+      setTimeout(() => {
+        try {
+          if (isFunc(onFulfilled)) {
+            const x = onFulfilled(that.value);
+            resolvePromise(promise2, x, resolve, reject);
+          } else {
+            resolve(that.value);
+          }
+        } catch (error) {
+          // 函数已经是 fulfilled 的了, 所以出错也不能执行 onRejected 回调, 而是要将当前 promise2 的状态置为 reject
+          reject(error);
+        }
+      }, 0);
+    });
+    return promise2;
+  }
+
+  // 如果已经是 rejected 状态, 则只需要直接执行 onRejected 函数
+  if (that.state === REJECTED) {
+    var promise2 = new MyPromise(function (resolve, reject) {
+      setTimeout(function () {
+        try {
+          if (isFunc(onRejected)) {
+            var x = onRejected(that.reason);
+            resolvePromise(promise2, x, resolve, reject);
+          } else {
+            reject(that.reason);
+          }
+        } catch (error) {
+          // 函数已经是 fulfilled 的了, 所以出错也不能执行 onRejected 回调, 而是要将当前 promise2 的状态置为 reject
+          reject(error);
+        }
+      }, 0);
+    });
     return promise2;
   }
 };

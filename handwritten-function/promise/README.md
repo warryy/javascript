@@ -7,6 +7,7 @@
 1. 初始化变量, state, value, reason, resolve, reject, onFulfilledCallbacks, onRejectedCallbacks
 2. 完成构造函数入参函数的写法
 3. thenable 方法
+4. 时刻记住 then 函数是有两个回调函数参数的
 
 **注意:**
 - 永远返回一个 `promise` 对象
