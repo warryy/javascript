@@ -40,3 +40,6 @@ console.log(2);
 
 ### `finally`
 - 要返回一个 `Promise` 对象, 因为 `finally` 也可以链式调用
+
+### `allSettled`
+- 类比 `all` 的实现
